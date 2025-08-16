@@ -11,6 +11,51 @@ function todayName() {
   return new Date().toLocaleDateString(undefined, { weekday: "long" });
 }
 
+// --- Helper: shift AI tasks to avoid overlapping classes ---
+function shiftAiBlocksForCalendar(aiBlocks, classes) {
+  const classBlocks = classes.map(c => {
+    const [startH, startM] = c.start.split(":").map(Number);
+    const [endH, endM] = c.end.split(":").map(Number);
+    return {
+      day: c.day,
+      start: startH + startM / 60,
+      end: endH + endM / 60
+    };
+  });
+
+  return aiBlocks.map(block => {
+    const [startH, startM] = block.start.split(":").map(Number);
+    const [endH, endM] = block.end.split(":").map(Number);
+    let start = startH + startM / 60;
+    let end = endH + endM / 60;
+
+    const relevantClasses = classBlocks.filter(c => c.day === block.day);
+
+    let overlap = true;
+    while (overlap) {
+      overlap = false;
+      for (const c of relevantClasses) {
+        if (!(end <= c.start || start >= c.end)) {
+          start = c.end;
+          end = start + (end - (startH + startM / 60)); // keep original duration
+          overlap = true;
+        }
+      }
+    }
+
+    const newStartH = Math.floor(start);
+    const newStartM = Math.round((start - newStartH) * 60);
+    const newEndH = Math.floor(end);
+    const newEndM = Math.round((end - newEndH) * 60);
+
+    return {
+      ...block,
+      start: `${newStartH.toString().padStart(2,"0")}:${newStartM.toString().padStart(2,"0")}`,
+      end: `${newEndH.toString().padStart(2,"0")}:${newEndM.toString().padStart(2,"0")}`
+    };
+  });
+}
+
 export default function App() {
   const [classes, setClasses] = useState(() => {
     try { return JSON.parse(localStorage.getItem("classes")) || []; } catch { return []; }
@@ -49,18 +94,29 @@ export default function App() {
     const updated = goals.filter((g) => g.id !== id);
     setGoals(updated);
     localStorage.setItem("goals", JSON.stringify(updated));
+
+    // --- Clear AI blocks if no goals remain ---
+    if (updated.length === 0) {
+      setAiBlocks([]);
+    }
   };
 
   // ----- Suggest Schedule (AI) -----
   const suggestSchedule = async () => {
+    setLoading(true);
+
     if (!goals.length) {
-      alert("Add some goals first!");
+      // no goals → clear AI blocks
+      setAiBlocks([]);
+      setLoading(false);
       return;
     }
-    setLoading(true);
+
     try {
       const res = await axios.post("http://localhost:5000/api/suggest-schedule", { classes, goals });
-      setAiBlocks(res.data.blocks || []);
+      const rawBlocks = res.data.blocks || [];
+      const shiftedBlocks = shiftAiBlocksForCalendar(rawBlocks, classes);
+      setAiBlocks(shiftedBlocks);
     } catch (err) {
       console.error("Failed to get AI schedule", err);
       alert("Failed to get AI schedule, check backend");
@@ -106,7 +162,10 @@ export default function App() {
 
       {/* Calendar Panel */}
       <div>
-        <CalendarView classes={classes} aiBlocks={aiBlocks} />
+        <CalendarView 
+          classes={classes} 
+          aiBlocks={shiftAiBlocksForCalendar(aiBlocks, classes)} 
+        />
       </div>
 
       {/* Right Panel: Daily Tasks */}
