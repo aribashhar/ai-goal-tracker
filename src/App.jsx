@@ -95,9 +95,8 @@ export default function App() {
     setGoals(updated);
     localStorage.setItem("goals", JSON.stringify(updated));
 
-    // --- Clear AI blocks if no goals remain ---
     if (updated.length === 0) {
-      setAiBlocks([]);
+      setAiBlocks([]); // clear AI tasks if no goals remain
     }
   };
 
@@ -106,8 +105,7 @@ export default function App() {
     setLoading(true);
 
     if (!goals.length) {
-      // no goals → clear AI blocks
-      setAiBlocks([]);
+      setAiBlocks([]); // clear AI blocks if no goals
       setLoading(false);
       return;
     }
@@ -115,7 +113,14 @@ export default function App() {
     try {
       const res = await axios.post("http://localhost:5000/api/suggest-schedule", { classes, goals });
       const rawBlocks = res.data.blocks || [];
-      const shiftedBlocks = shiftAiBlocksForCalendar(rawBlocks, classes);
+
+      // attach priority from original goal
+      const blocksWithPriority = rawBlocks.map(b => {
+        const originalGoal = goals.find(g => g.title === b.title);
+        return { ...b, priority: originalGoal?.priority || "Medium" };
+      });
+
+      const shiftedBlocks = shiftAiBlocksForCalendar(blocksWithPriority, classes);
       setAiBlocks(shiftedBlocks);
     } catch (err) {
       console.error("Failed to get AI schedule", err);
@@ -164,7 +169,7 @@ export default function App() {
       <div>
         <CalendarView 
           classes={classes} 
-          aiBlocks={shiftAiBlocksForCalendar(aiBlocks, classes)} 
+          aiBlocks={aiBlocks} 
         />
       </div>
 

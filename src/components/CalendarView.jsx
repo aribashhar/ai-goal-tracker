@@ -6,17 +6,19 @@ function getDayOfWeekDate(dayName) {
   const today = new Date();
   const dayIndex = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].indexOf(dayName);
   const sunday = new Date(today);
-  sunday.setDate(today.getDate() - today.getDay());
+  sunday.setDate(today.getDate() - today.getDay()); // start from Sunday
   const target = new Date(sunday);
   target.setDate(sunday.getDate() + dayIndex);
   return target.toISOString().split("T")[0];
 }
 
 export default function CalendarView({ classes = [], aiBlocks = [] }) {
-  const urgencyColors = {
-    high: "red",
-    medium: "orange",
-    low: "green"
+  const getEventColor = (b) => {
+    if (b.type === "Class") return "gray";
+    if (b.priority === "High") return "#ff4d4f"; // red
+    if (b.priority === "Medium") return "#fa8c16"; // orange
+    if (b.priority === "Low") return "#52c41a"; // green
+    return "steelblue";
   };
 
   const classEvents = classes.map(c => ({
@@ -24,7 +26,8 @@ export default function CalendarView({ classes = [], aiBlocks = [] }) {
     title: c.name,
     start: `${getDayOfWeekDate(c.day)}T${c.start}`,
     end: `${getDayOfWeekDate(c.day)}T${c.end}`,
-    color: "gray"
+    color: "gray",
+    type: "Class"
   }));
 
   const aiEvents = aiBlocks.map(b => ({
@@ -32,7 +35,9 @@ export default function CalendarView({ classes = [], aiBlocks = [] }) {
     title: `Task: ${b.title}`,
     start: `${getDayOfWeekDate(b.day)}T${b.start}`,
     end: `${getDayOfWeekDate(b.day)}T${b.end}`,
-    color: urgencyColors[b.urgency] || "steelblue"
+    color: getEventColor(b),
+    type: "Task",
+    priority: b.priority
   }));
 
   return (
@@ -40,11 +45,10 @@ export default function CalendarView({ classes = [], aiBlocks = [] }) {
       plugins={[timeGridPlugin, interactionPlugin]}
       initialView="timeGridWeek"
       allDaySlot={false}
-      firstDay={0}
+      firstDay={0} // show Sunday as first column
       slotMinTime="07:00:00"
       slotMaxTime="22:00:00"
       events={[...classEvents, ...aiEvents]}
-      eventOverlap={false} // prevents visual overlap
       height="auto"
     />
   );

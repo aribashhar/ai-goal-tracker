@@ -1,12 +1,6 @@
 export default function DailyTasks({ classes = [], aiBlocks = [] }) {
   const today = new Date().toLocaleDateString(undefined, { weekday: "long" });
 
-  const urgencyColors = {
-    high: "red",
-    medium: "orange",
-    low: "green"
-  };
-
   // Merge classes and AI tasks for today
   const allTasks = [
     ...classes.filter(c => c.day === today).map(c => ({ ...c, type: "Class" })),
@@ -17,37 +11,19 @@ export default function DailyTasks({ classes = [], aiBlocks = [] }) {
 
   if (!allTasks.length) return <p>No tasks today!</p>;
 
+  // --- Visual timeline setup ---
   const dayStart = 7; // 7 AM
   const dayEnd = 22; // 10 PM
   const hourHeight = 40; // px per hour
   const totalHours = dayEnd - dayStart;
 
-  // Helper to shift tasks below any overlapping classes
-  function shiftTaskIfOverlap(task, classBlocks) {
-    let [startHour, startMin] = task.start.split(":").map(Number);
-    let [endHour, endMin] = task.end.split(":").map(Number);
-    let top = ((startHour + startMin / 60) - dayStart) * hourHeight;
-    let height = ((endHour + endMin / 60) - (startHour + startMin / 60)) * hourHeight;
-
-    let overlap = true;
-    while (overlap) {
-      overlap = false;
-      for (const c of classBlocks) {
-        const [cStartHour, cStartMin] = c.start.split(":").map(Number);
-        const [cEndHour, cEndMin] = c.end.split(":").map(Number);
-        const cTop = ((cStartHour + cStartMin / 60) - dayStart) * hourHeight;
-        const cHeight = ((cEndHour + cEndMin / 60) - (cStartHour + cStartMin / 60)) * hourHeight;
-
-        if (!(top + height <= cTop || top >= cTop + cHeight)) {
-          top = cTop + cHeight + 2; // shift below class
-          overlap = true;
-        }
-      }
-    }
-    return { top, height };
-  }
-
-  const classBlocks = allTasks.filter(t => t.type === "Class");
+  const getTaskColor = (t) => {
+    if (t.type === "Class") return "gray";
+    if (t.priority === "High") return "#ff4d4f"; // red
+    if (t.priority === "Medium") return "#fa8c16"; // orange
+    if (t.priority === "Low") return "#52c41a"; // green
+    return "steelblue";
+  };
 
   return (
     <div style={{ border: "1px solid #ccc", padding: 10, borderRadius: 6 }}>
@@ -84,12 +60,9 @@ export default function DailyTasks({ classes = [], aiBlocks = [] }) {
         {allTasks.map(t => {
           const [startHour, startMin] = t.start.split(":").map(Number);
           const [endHour, endMin] = t.end.split(":").map(Number);
-          const initialTop = ((startHour + startMin / 60) - dayStart) * hourHeight;
-          const initialHeight = ((endHour + endMin / 60) - (startHour + startMin / 60)) * hourHeight;
 
-          const { top, height } = t.type === "Task"
-            ? shiftTaskIfOverlap(t, classBlocks)
-            : { top: initialTop, height: initialHeight };
+          const top = ((startHour + startMin / 60) - dayStart) * hourHeight;
+          const height = ((endHour + endMin / 60) - (startHour + startMin / 60)) * hourHeight;
 
           return (
             <div
@@ -100,7 +73,7 @@ export default function DailyTasks({ classes = [], aiBlocks = [] }) {
                 left: 50,
                 right: 10,
                 height,
-                backgroundColor: t.type === "Class" ? "gray" : urgencyColors[t.urgency] || "steelblue",
+                backgroundColor: getTaskColor(t),
                 color: "white",
                 padding: "2px 4px",
                 borderRadius: 4,
