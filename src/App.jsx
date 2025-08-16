@@ -5,13 +5,14 @@ import ClassList from "./components/ClassList";
 import GoalForm from "./components/GoalForm";
 import GoalsList from "./components/GoalsList";
 import CalendarView from "./components/CalendarView";
-import DailyTasks from "./components/DailyTasks"; // Sidebar component
+import DailyTasks from "./components/DailyTasks";
 
+// Get weekday name
 function todayName() {
   return new Date().toLocaleDateString(undefined, { weekday: "long" });
 }
 
-// --- Helper: shift AI tasks to avoid overlapping classes ---
+// Shift AI tasks to avoid overlapping classes
 function shiftAiBlocksForCalendar(aiBlocks, classes) {
   const classBlocks = classes.map(c => {
     const [startH, startM] = c.start.split(":").map(Number);
@@ -25,9 +26,8 @@ function shiftAiBlocksForCalendar(aiBlocks, classes) {
 
   return aiBlocks.map(block => {
     const [startH, startM] = block.start.split(":").map(Number);
-    const [endH, endM] = block.end.split(":").map(Number);
     let start = startH + startM / 60;
-    let end = endH + endM / 60;
+    let end = start + (block.hours || 1);
 
     const relevantClasses = classBlocks.filter(c => c.day === block.day);
 
@@ -37,7 +37,7 @@ function shiftAiBlocksForCalendar(aiBlocks, classes) {
       for (const c of relevantClasses) {
         if (!(end <= c.start || start >= c.end)) {
           start = c.end;
-          end = start + (end - (startH + startM / 60)); // keep original duration
+          end = start + (block.hours || 1);
           overlap = true;
         }
       }
@@ -84,7 +84,12 @@ export default function App() {
 
   // ----- Goals -----
   const addGoal = (g) => {
-    const item = { id: Date.now(), ...g, day: todayName() };
+    const item = { 
+      id: Date.now(), 
+      ...g, 
+      start: g.start || "07:00", // ensure start exists
+      day: todayName()
+    };
     const updated = [...goals, item];
     setGoals(updated);
     localStorage.setItem("goals", JSON.stringify(updated));
@@ -94,10 +99,7 @@ export default function App() {
     const updated = goals.filter((g) => g.id !== id);
     setGoals(updated);
     localStorage.setItem("goals", JSON.stringify(updated));
-
-    if (updated.length === 0) {
-      setAiBlocks([]); // clear AI tasks if no goals remain
-    }
+    if (updated.length === 0) setAiBlocks([]);
   };
 
   // ----- Suggest Schedule (AI) -----
@@ -105,7 +107,7 @@ export default function App() {
     setLoading(true);
 
     if (!goals.length) {
-      setAiBlocks([]); // clear AI blocks if no goals
+      setAiBlocks([]);
       setLoading(false);
       return;
     }
@@ -114,10 +116,14 @@ export default function App() {
       const res = await axios.post("http://localhost:5000/api/suggest-schedule", { classes, goals });
       const rawBlocks = res.data.blocks || [];
 
-      // attach priority from original goal
       const blocksWithPriority = rawBlocks.map(b => {
         const originalGoal = goals.find(g => g.title === b.title);
-        return { ...b, priority: originalGoal?.priority || "Medium" };
+        return { 
+          ...b, 
+          priority: originalGoal?.priority || "Medium",
+          start: b.start || "07:00",
+          hours: b.hours || 1
+        };
       });
 
       const shiftedBlocks = shiftAiBlocksForCalendar(blocksWithPriority, classes);
@@ -131,16 +137,7 @@ export default function App() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 1200,
-        margin: "0 auto",
-        padding: 20,
-        display: "grid",
-        gridTemplateColumns: "320px 1fr 250px",
-        gap: 20,
-      }}
-    >
+    <div style={{ maxWidth: 1200, margin:"0 auto", padding:20, display:"grid", gridTemplateColumns:"320px 1fr 250px", gap:20 }}>
       {/* Left Panel */}
       <div>
         <h1>AI Goal Tracker</h1>
@@ -153,27 +150,18 @@ export default function App() {
         <GoalForm addGoal={addGoal} />
         <GoalsList goals={goals} removeGoal={removeGoal} />
 
-        <button
-          onClick={suggestSchedule}
-          style={{ marginTop: 12, padding: "8px 12px" }}
-          disabled={loading}
-        >
+        <button onClick={suggestSchedule} style={{ marginTop: 12, padding:"8px 12px" }} disabled={loading}>
           {loading ? "Generating..." : "Suggest Schedule (AI)"}
         </button>
-        <p style={{ fontSize: 12, color: "#666" }}>
-          Add/Remove classes & goals freely; press the button to refresh the AI schedule.
-        </p>
+        <p style={{ fontSize:12, color:"#666" }}>Add/Remove classes & goals freely; press the button to refresh the AI schedule.</p>
       </div>
 
       {/* Calendar Panel */}
       <div>
-        <CalendarView 
-          classes={classes} 
-          aiBlocks={aiBlocks} 
-        />
+        <CalendarView classes={classes} aiBlocks={aiBlocks} />
       </div>
 
-      {/* Right Panel: Daily Tasks */}
+      {/* Right Panel */}
       <div>
         <DailyTasks classes={classes} aiBlocks={aiBlocks} />
       </div>
