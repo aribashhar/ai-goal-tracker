@@ -1,10 +1,10 @@
-SmartFlow: AI powered Scheduler
+# SmartFlow: AI powered Scheduler
 
-Created by: @aribashhar, @fawaaz-kamali, @AzeemZsyed
+#### Created by: @aribashhar, @fawaaz-kamali, @AzeemZsyed
 
-AI Goal Tracker is a web application designed to help users organize their daily schedule by combining fixed classes and user-defined goals. It provides visual timelines, calendar views, and AI-suggested scheduling to optimize daily productivity.
+SmartFlow is a web application designed to help users organize their daily schedule by combining fixed classes and user-defined goals. It provides visual timelines, calendar views, and AI-suggested scheduling to optimize daily productivity.
 
-Features
+## Features
 
 Add Classes: Set class names, days, and start/end times.
 
@@ -18,28 +18,31 @@ Calendar View: Full weekly calendar that respects start times and durations.
 
 Persistent Storage: Data is saved in localStorage, so your schedule persists across sessions.
 
-Installation
+## Installation
 
 Clone the repository:
 
-git clone <your-repo-url>
-cd ai-goal-tracker
+`git clone <your-repo-url>`
 
-Install dependencies:
+`cd ai-goal-tracker`
 
-npm install
+## Install dependencies:
 
-Start the frontend:
+`npm install`
 
-npm run dev
+## Start the frontend:
 
-(Optional) Run the backend for AI scheduling:
+``npm run dev``
 
-cd backend
-npm install
-npm start
+## (Optional) Run the backend for AI scheduling:
 
-Usage
+`cd backend`
+
+`npm install`
+
+`npm start`
+
+## Usage
 
 Add Classes: Enter the class name, select the day, and set start/end times.
 
@@ -53,7 +56,7 @@ View Calendar: See all tasks and classes for the week in the calendar panel.
 
 Remove Items: Use the remove buttons to delete classes or goals.
 
-Tech Stack
+## Tech Stack
 
 Frontend: React, FullCalendar, CSS
 
@@ -61,7 +64,7 @@ Backend (optional): Node.js/Express for AI schedule suggestions
 
 Storage: LocalStorage
 
-Notes
+## Notes
 
 Goals respect the start time and duration exactly.
 
