@@ -140,7 +140,8 @@ export default function App() {
     <div style={{ maxWidth: 1200, margin:"0 auto", padding:20, display:"grid", gridTemplateColumns:"320px 1fr 250px", gap:20 }}>
       {/* Left Panel */}
       <div>
-        <h1>AI Goal Tracker</h1>
+        <h1>SmartFlow</h1>
+        <h2>AI powered sceduler</h2>
 
         <h2>Add Class</h2>
         <ClassForm addClass={addClass} />

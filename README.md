@@ -1,12 +1,70 @@
-# React + Vite
+SmartFlow: AI powered Scheduler
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Created by: @aribashhar, @fawaaz-kamali, @AzeemZsyed
 
-Currently, two official plugins are available:
+AI Goal Tracker is a web application designed to help users organize their daily schedule by combining fixed classes and user-defined goals. It provides visual timelines, calendar views, and AI-suggested scheduling to optimize daily productivity.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Features
 
-## Expanding the ESLint configuration
+Add Classes: Set class names, days, and start/end times.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Add Daily Goals: Create goals with start time, duration (hours), and priority.
+
+AI-Suggested Schedule: Automatically generates suggested task blocks while avoiding class overlaps.
+
+Visual Timeline: See your tasks and classes in a timeline for quick overview.
+
+Calendar View: Full weekly calendar that respects start times and durations.
+
+Persistent Storage: Data is saved in localStorage, so your schedule persists across sessions.
+
+Installation
+
+Clone the repository:
+
+git clone <your-repo-url>
+cd ai-goal-tracker
+
+Install dependencies:
+
+npm install
+
+Start the frontend:
+
+npm run dev
+
+(Optional) Run the backend for AI scheduling:
+
+cd backend
+npm install
+npm start
+
+Usage
+
+Add Classes: Enter the class name, select the day, and set start/end times.
+
+Add Goals: Enter goal title, start time, duration, and priority.
+
+Generate AI Schedule: Click “Suggest Schedule (AI)” to automatically place goals around your classes.
+
+View Daily Tasks: Check the visual timeline on the right to see your day at a glance.
+
+View Calendar: See all tasks and classes for the week in the calendar panel.
+
+Remove Items: Use the remove buttons to delete classes or goals.
+
+Tech Stack
+
+Frontend: React, FullCalendar, CSS
+
+Backend (optional): Node.js/Express for AI schedule suggestions
+
+Storage: LocalStorage
+
+Notes
+
+Goals respect the start time and duration exactly.
+
+AI scheduling avoids overlapping with classes.
+
+Supports priorities (High, Medium, Low) which color-code tasks.
